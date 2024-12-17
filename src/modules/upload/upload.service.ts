@@ -22,6 +22,12 @@ export class UploadService {
   constructor(private readonly configService: ConfigService) { }
 
   async upload(fileName: string, file: Buffer, contentType: string) {
+    // const today = new Date();
+    // const dateStr = today.toISOString().split('T')[0].replace(/-/g, ''); // '2024-12-18' -> '20241218'
+
+    // fileName = randomUUID() + '_' + dateStr + '.' + contentType.split('/')[1];
+    console.log(fileName);
+
     const command = new PutObjectCommand({
       Bucket: 'avatars',
       Key: fileName,
@@ -30,10 +36,9 @@ export class UploadService {
     });
 
     const response = await this.s3Client.send(command);
-    console.log(response);
-    const getCom = new GetObjectCommand({ Bucket: 'avatars', Key: fileName });
-    const ress = await this.s3Client.send(getCom);
-    console.log(ress);
+
+    const avatarPath = `${this.configService.get('s3.endpoint')}/avatars/${fileName}?x-id=GetObject`
+
   }
 
   getBuckets() {
