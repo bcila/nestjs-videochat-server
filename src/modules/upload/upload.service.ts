@@ -19,7 +19,7 @@ export class UploadService {
     forcePathStyle: true,
   });
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async upload(fileName: string, file: Buffer, contentType: string) {
     const command = new PutObjectCommand({
