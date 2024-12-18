@@ -8,3 +8,12 @@ export default registerAs('mongo', () => ({
   appName: process.env.MONGO_APPNAME,
   uri: process.env.MONGO_URI,
 }));
+
+export interface MongoConfig {
+  type: 'mongo';
+  username: string;
+  password: string;
+  host: string;
+  appName: string;
+  uri: string;
+}

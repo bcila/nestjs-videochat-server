@@ -10,3 +10,14 @@ export default registerAs('postgres', () => ({
   synchronize: process.env.NODE_ENV !== 'production',
   ssl: true,
 }));
+
+export interface PostgresConfig {
+  type: 'postgres';
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database: string;
+  synchronize: boolean;
+  ssl: boolean;
+}

@@ -2,21 +2,24 @@ import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import * as mongoose from 'mongoose';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { PostgresConfig } from '../../config/postgres.config';
+import { MongoConfig } from '../../config/mongo.config';
 
 export const databaseProviders = [
   {
     provide: 'POSTGRES_PROVIDER',
     inject: [ConfigService],
     useFactory: async (configService: ConfigService) => {
+      const pgConfig = configService.get<PostgresConfig>('postgres');
       const source: PostgresConnectionOptions = {
-        type: configService.get<'postgres'>('postgres.type'),
-        host: configService.get<string>('postgres.host'),
-        port: configService.get<number>('postgres.port'),
-        username: configService.get<string>('postgres.username'),
-        password: configService.get<string>('postgres.password'),
-        database: configService.get<string>('postgres.database'),
-        synchronize: configService.get<boolean>('postgres.synchronize'),
-        ssl: configService.get<boolean>('postgres.ssl'),
+        type: pgConfig.type,
+        host: pgConfig.host,
+        port: pgConfig.port,
+        username: pgConfig.username,
+        password: pgConfig.password,
+        database: pgConfig.database,
+        synchronize: pgConfig.synchronize,
+        ssl: pgConfig.ssl,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       };
 
@@ -30,10 +33,11 @@ export const databaseProviders = [
     useFactory: async (
       configService: ConfigService,
     ): Promise<typeof mongoose> => {
-      const username = configService.get<string>('mongo.username');
-      const password = configService.get<string>('mongo.password');
-      const host = configService.get<string>('mongo.host');
-      const appName = configService.get<string>('mongo.appName');
+      const mongoConfig = configService.get<MongoConfig>('mongo');
+      const username = mongoConfig.username;
+      const password = mongoConfig.password;
+      const host = mongoConfig.host;
+      const appName = mongoConfig.appName;
 
       const uri = configService
         .get('mongo.uri')

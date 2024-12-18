@@ -5,4 +5,5 @@ export default registerAs('s3', () => ({
   secretAccessKey: process.env.MINIO_SECRET_KEY,
   region: process.env.MINIO_REGION,
   endpoint: process.env.MINIO_ENDPOINT,
+  forcePathStyle: true,
 }));
