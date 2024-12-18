@@ -6,11 +6,12 @@ import s3Config from '../config/s3.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
 import { getMongoConfig, getPostgresConfig } from './utils/database.util';
+import jwtConfig from 'src/config/jwt.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [postgresConfig, mongoConfig, s3Config],
+      load: [postgresConfig, mongoConfig, s3Config, jwtConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -26,4 +27,4 @@ import { getMongoConfig, getPostgresConfig } from './utils/database.util';
     }),
   ],
 })
-export class CoreModule {}
+export class CoreModule { }

@@ -8,11 +8,11 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async verifyUser(email: string, password: string): Promise<any> {
     try {
-      const user = await this.usersService.getUser(email);
+      const user = await this.usersService.findOne({ email });
       const authenticated = compare(password, user.password);
       if (!authenticated) {
         throw new UnauthorizedException();
