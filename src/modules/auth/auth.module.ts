@@ -1,25 +1,28 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtConfig } from 'src/config/jwt.config';
-import { getJwtConfig } from 'src/core/utils/jtw.util';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { DeviceInfoMiddleware } from '../../common/middlewares/device-info.middleware';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Session, SessionSchema } from './schemas/session.schema';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => getJwtConfig(configService)
-    }),
+    JwtModule,
+    MongooseModule.forFeature([{ name: Session.name, schema: SessionSchema }]),
   ],
-  providers: [AuthService, LocalStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshStrategy],
   controllers: [AuthController],
 })
-export class AuthModule { }
+export class AuthModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(DeviceInfoMiddleware).forRoutes('auth/login');
+  }
+}

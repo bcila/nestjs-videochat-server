@@ -10,6 +10,7 @@ import {
   IsStrongPassword,
   MinLength,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('users')
 export class User {
@@ -19,6 +20,7 @@ export class User {
   @Column({ unique: true })
   @IsString()
   @IsEmail({}, { message: 'Please provide a valid email address' })
+  @ApiProperty({ example: 'holly.jennings@example.com' }) // Swagger
   email: string;
 
   @Column()
@@ -27,6 +29,7 @@ export class User {
     message: 'Minimum character length should be at least 6 characters',
   })
   @IsStrongPassword({}, { message: 'Please enter more strong password' })
+  @ApiProperty({ example: 'GoodGirl51.' })
   password: string;
 
   @CreateDateColumn()

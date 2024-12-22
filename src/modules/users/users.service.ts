@@ -2,14 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { CreateUserDto } from '../auth/dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
-  ) { }
+  ) {}
 
   findAll(): Promise<User[]> {
     return this.usersRepository.find();

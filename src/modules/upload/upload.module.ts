@@ -4,7 +4,7 @@ import { UploadService } from './upload.service';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ConfigModule],
+  // imports: [ConfigModule],
   controllers: [UploadController],
   providers: [UploadService],
 })
