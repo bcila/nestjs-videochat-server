@@ -49,4 +49,9 @@ export class AuthController {
   async register(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
+  @Post('logout')
+  async logout(@CurrentUser() user: User, @Res() response: Response) {
+    await this.authService.logout(user.id, response);
+  }
 }

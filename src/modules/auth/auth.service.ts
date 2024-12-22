@@ -52,12 +52,14 @@ export class AuthService {
     response.cookie('Authorization', accessToken, {
       httpOnly: true,
       secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
       expires: expiresAccessToken,
     });
 
     response.cookie('Refresh', refreshToken, {
       httpOnly: true,
       secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
       expires: expiresRefreshToken,
     });
 
@@ -73,7 +75,7 @@ export class AuthService {
     );
   }
 
-  async verifyUser(email: string, password: string): Promise<any> {
+  async verifyUser(email: string, password: string): Promise<User> {
     try {
       const user = await this.usersService.findOne({ email });
       const authenticated = await compare(password, user.password);
@@ -86,7 +88,10 @@ export class AuthService {
     }
   }
 
-  async verifyUserRefreshToken(refreshToken: string, userId: string) {
+  async verifyUserRefreshToken(
+    refreshToken: string,
+    userId: string,
+  ): Promise<User> {
     try {
       const user = await this.usersService.findOne({ id: userId });
       const response = await this.sessionModel.findOne({ userId: userId });
@@ -98,5 +103,9 @@ export class AuthService {
     } catch (err) {
       throw new UnauthorizedException('Refresh token is not valid.');
     }
+  }
+
+  async logout(userId: string, response: Response): Promise<void> {
+    await this.sessionModel.findOneAndDelete({ userId: userId });
   }
 }
