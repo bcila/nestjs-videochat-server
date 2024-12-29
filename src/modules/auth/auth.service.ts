@@ -22,7 +22,12 @@ export class AuthService {
     @InjectModel(Session.name) private sessionModel: Model<Session>,
   ) {}
 
-  async login(user: User, response: Response, deviceInfo: DeviceInfo) {
+  async login(
+    user: User,
+    response: Response,
+    deviceInfo: DeviceInfo,
+    isRefreshRequest: boolean = false,
+  ) {
     const jwtConfig: JwtConfig = this.configService.get<JwtConfig>('jwt');
 
     const payload: TokenPayload = { userId: user.id };
@@ -32,21 +37,10 @@ export class AuthService {
       expiresIn: jwtConfig.accessExpiresIn,
     });
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: jwtConfig.refreshSecret,
-      expiresIn: jwtConfig.refreshExpiresIn,
-    });
-
     const expiresAccessToken = new Date();
     expiresAccessToken.setMilliseconds(
       expiresAccessToken.getMilliseconds() +
         timeStringToMs(jwtConfig.accessExpiresIn),
-    );
-
-    const expiresRefreshToken = new Date();
-    expiresRefreshToken.setMilliseconds(
-      expiresRefreshToken.getMilliseconds() +
-        timeStringToMs(jwtConfig.refreshExpiresIn),
     );
 
     response.cookie('Authorization', accessToken, {
@@ -56,23 +50,36 @@ export class AuthService {
       expires: expiresAccessToken,
     });
 
-    response.cookie('Refresh', refreshToken, {
-      httpOnly: true,
-      secure: this.configService.get<string>('NODE_ENV') === 'production',
-      sameSite: 'strict',
-      expires: expiresRefreshToken,
-    });
+    if (!isRefreshRequest) {
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: jwtConfig.refreshSecret,
+        expiresIn: jwtConfig.refreshExpiresIn,
+      });
 
-    await this.sessionModel.findOneAndUpdate(
-      { userId: user.id },
-      {
-        $set: {
-          refreshToken: await hash(refreshToken, 10),
-          deviceInfo: deviceInfo,
+      const expiresRefreshToken = new Date();
+      expiresRefreshToken.setMilliseconds(
+        expiresRefreshToken.getMilliseconds() +
+          timeStringToMs(jwtConfig.refreshExpiresIn),
+      );
+
+      response.cookie('Refresh', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<string>('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        expires: expiresRefreshToken,
+      });
+
+      await this.sessionModel.findOneAndUpdate(
+        { userId: user.id },
+        {
+          $set: {
+            refreshToken: await hash(refreshToken, 10),
+            deviceInfo: deviceInfo,
+          },
         },
-      },
-      { new: true, upsert: true },
-    );
+        { new: true, upsert: true },
+      );
+    }
   }
 
   async verifyUser(email: string, password: string): Promise<User> {
@@ -107,5 +114,28 @@ export class AuthService {
 
   async logout(userId: string, response: Response): Promise<void> {
     await this.sessionModel.findOneAndDelete({ userId: userId });
+    response.clearCookie('Authorization', {
+      httpOnly: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
+    });
+    response.clearCookie('Refresh', {
+      httpOnly: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
+    });
+  }
+
+  async check(user: User): Promise<{
+    isAuthenticated: boolean;
+    user: { id: string; email: string };
+  }> {
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return {
+      isAuthenticated: !!user,
+      user: { id: user.id, email: user.email },
+    };
   }
 }

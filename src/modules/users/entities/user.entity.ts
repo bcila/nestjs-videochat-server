@@ -11,11 +11,18 @@ import {
   MinLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotBannedWord } from '../../../common/decorators/is-not-banned-word.decorator';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ unique: true })
+  @IsString()
+  @IsNotBannedWord()
+  @ApiProperty({ example: 'hollyj' })
+  username: string;
 
   @Column({ unique: true })
   @IsString()
